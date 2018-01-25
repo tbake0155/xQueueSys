@@ -6,26 +6,19 @@
 class Process
 {
     private:
-        std::string process;
-        long counter;
+        std::string process_path;
         pid_t pid;
         int nice;
         Process(){} // can't touch this
       
     public:
-        Process(std::string process_name, int how_nice);
-        Process(std::string process_name);
+        Process(std::string Process_Path, int How_Nice);
+        Process(std::string Process_Path);
         ~Process(){}
-        void harikari();
-        void pheonixrising();
-        long Counter(){return counter;}
-        void Counter(long new_counter){counter = new_counter;}
-        void reset_count(){counter = 0;}
-        std::string Process_Name(){return process;}
-        int Pid(){return pid;}
-        void Pid(int manual_pid){pid = manual_pid;}
-        int Nice(){return nice;}
-        void Nice(int new_nice){nice = new_nice;}
-        int default_nice(){return 10;}
+        std::string Process_Path(){return this->process_path;}
+        void Pid(pid_t Pid){this->pid=Pid;}
+        pid_t Pid(){return this->pid;}
+        void Nice(int Nice){this->nice=Nice;}
+        int Nice(){return this->nice;}
 };
 #endif // PROCESS_H

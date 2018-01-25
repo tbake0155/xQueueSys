@@ -19,22 +19,22 @@ n_countdown.o: src/n_countdown.cpp
 	g++ -c -g src/n_countdown.cpp -std=c++11 -o obj/n_countdown.o
 		
 n_factorial: n_factorial.o
-	g++ -o bin/n_factorial obj/n_factorial.o -pthread
+	g++ -o bin/n_factorial obj/n_factorial.o -pthread -lX11 `pkg-config --libs gtk+-2.0`
 
 n_factorial.o: src/n_factorial.cpp	
-	g++ -c -g src/n_factorial.cpp -std=c++11 -o obj/n_factorial.o -lpthread
+	g++ -c -g src/n_factorial.cpp -std=c++11 -o obj/n_factorial.o `pkg-config --cflags gtk+-2.0`
 	
 n_fibonacci: n_fibonacci.o
 	g++ -o bin/n_fibonacci obj/n_fibonacci.o -pthread
 
 n_fibonacci.o: src/n_fibonacci.cpp	
-	g++ -c -g src/n_fibonacci.cpp -std=c++11 -o obj/n_fibonacci.o -lpthread
+	g++ -c -g src/n_fibonacci.cpp -std=c++11 -o obj/n_fibonacci.o 
 	
 ascii_image: ascii_image.o
 	g++ -o bin/ascii_image obj/ascii_image.o -pthread
 
 ascii_image.o: src/ascii_image.cpp	
-	g++ -c -g src/ascii_image.cpp -std=c++11 -o obj/ascii_image.o -lpthread
+	g++ -c -g src/ascii_image.cpp -std=c++11 -o obj/ascii_image.o 
 	
 clean:
 	rm obj/*.o

@@ -12,9 +12,7 @@ void Process_Queue::add_process(Process new_process)
 }
 
 void Process_Queue::remove_process(Process old_process)
-{
-    old_process.harikari();
-    
+{    
     std::list<Process>::iterator process_itr = this->processes.begin();
     
     while(process_itr != this->processes.end())
@@ -40,17 +38,52 @@ void Process_Queue::new_process(std::string process_name, int how_nice)
     this->add_process(process);
 }
 
-void Process_Queue::kill_process(std::string process_name)
+void Process_Queue::Child_Pid(std::string Process_Path, pid_t Child_Pid)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
     
     while(process_itr != this->processes.end())
     {
-        if(process_itr->Process_Name() == process_name)
+        if(process_itr->Process_Path() == Process_Path)
         {
-            this->remove_process(*process_itr);
+            process_itr->Pid(Child_Pid);
+            break;
+        }
+        process_itr++;
+    }
+     
+}
+
+pid_t Process_Queue::Child_Pid(std::string Process_Path)
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Process_Path() == Process_Path)
+        {
+            return process_itr->Pid();
+        }
+        process_itr++;
+    }
+    
+    return -1;
+}
+
+std::string Process_Queue::Child_Process(std::string Process_Path)
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Process_Path() == Process_Path)
+        {
+            process_itr->Process_Path();
             break;
         }
         process_itr++;
     }
 }
+
+
+
