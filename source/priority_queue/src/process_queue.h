@@ -3,6 +3,7 @@
 
 #include "process.h"
 #include <list>
+#include <gtk/gtk.h>
 
 class Process_Queue
 {
@@ -25,5 +26,7 @@ class Process_Queue
         void kill_process(std::string Process_Path, std::string method);
         void kill_all_processes(std::string method);
         void run_process(const char *Process_Path);
+        void load_processes_from_file(std::string File_Path); // TODO
+        void add_processes_to_lists(GtkWidget *scheduled_list, GtkWidget *idle_list);
 };
 #endif // PROCESS_QUEUE_H

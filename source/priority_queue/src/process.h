@@ -23,5 +23,7 @@ class Process
         int Nice(){return this->nice;}
         std::string Status(){return this->status;}
         void Status(std::string Child_Status){this->status=Child_Status;}
+        std::string path_to_name(std::string path); // TODO
+        std::string Scrollable_List_Data(bool include_pid);
 };
 #endif // PROCESS_H

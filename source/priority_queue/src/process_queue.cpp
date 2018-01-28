@@ -2,6 +2,7 @@
 #include <signal.h>
 #include <unistd.h>
 
+
 bool process_sort(Process proc1, Process proc2)
 {
     return proc1.Nice() <= proc2.Nice();
@@ -214,9 +215,38 @@ void Process_Queue::run_process(const char *Process_Path)
    }
 }
 
+void Process_Queue::load_processes_from_file(std::string File_Path)
+{
+    //TODO
+}
 
-
-
-
+void Process_Queue::add_processes_to_lists(GtkWidget *scheduled_list, GtkWidget *idle_list)
+{
+    GtkWidget *list_item;
+    GtkWidget *label;
+    
+    gtk_container_foreach (GTK_CONTAINER (scheduled_list), (GtkCallback) gtk_widget_destroy, NULL);
+    gtk_container_foreach (GTK_CONTAINER (idle_list), (GtkCallback) gtk_widget_destroy, NULL);
+    
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Status() == "idle" || process_itr->Status() == "blocked")
+        {
+            label = gtk_label_new(process_itr->Scrollable_List_Data(false).c_str());
+            list_item = gtk_list_item_new();
+            gtk_container_add(GTK_CONTAINER(list_item), label);
+            gtk_container_add(GTK_CONTAINER(idle_list), list_item);
+        }
+        else
+        {
+            label = gtk_label_new(process_itr->Scrollable_List_Data(true).c_str());
+            list_item = gtk_list_item_new();
+            gtk_container_add(GTK_CONTAINER(list_item), label);
+            gtk_container_add(GTK_CONTAINER(scheduled_list), list_item);        
+        }
+        process_itr++;
+    }
+}
 
 
