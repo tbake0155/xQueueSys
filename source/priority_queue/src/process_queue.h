@@ -11,6 +11,7 @@ class Process_Queue
         
     public:
         Process_Queue(){}
+        int num_processes(){return this->processes.size();}
         void new_process(std::string process_name);
         void new_process(std::string process_name, int how_nice);
         void add_process(Process new_process);
@@ -18,5 +19,11 @@ class Process_Queue
         void Child_Pid(std::string Process_Path, pid_t Child_Pid);
         pid_t  Child_Pid(std::string Process_Path);
         std::string Child_Process(std::string Process_Path);
+        void Child_Status(std::string Process_Path, std::string Status);
+        std::string Child_Status(std::string Status);
+        void kill_process(std::string Process_Path);
+        void kill_process(std::string Process_Path, std::string method);
+        void kill_all_processes(std::string method);
+        void run_process(const char *Process_Path);
 };
 #endif // PROCESS_QUEUE_H

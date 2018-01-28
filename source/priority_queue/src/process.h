@@ -7,6 +7,7 @@ class Process
 {
     private:
         std::string process_path;
+        std::string status; // idle, waiting, running, blocked
         pid_t pid;
         int nice;
         Process(){} // can't touch this
@@ -20,5 +21,7 @@ class Process
         pid_t Pid(){return this->pid;}
         void Nice(int Nice){this->nice=Nice;}
         int Nice(){return this->nice;}
+        std::string Status(){return this->status;}
+        void Status(std::string Child_Status){this->status=Child_Status;}
 };
 #endif // PROCESS_H
