@@ -462,7 +462,7 @@ int main(int argc, char **argv)
     // load built-in processes
     load_default_processes(pq);
     
-    // keep it together
+    // keep it together - cb_data holds all pointers used in callbacks
     cb_data->pq = pq;
     cb_data->scheduled_list = scheduled_list;
     cb_data->idle_list = idle_list;
@@ -500,9 +500,11 @@ int main(int argc, char **argv)
     
     // display the window for xQueueSys
     gtk_widget_show_all(window);
+
+    // yield program control over to gtk, it's all callbacks from here
     gtk_main();
     
-    // clean up this mess
+    // clean up
     delete(pq);
     delete(cb_data);
 
