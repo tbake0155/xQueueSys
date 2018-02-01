@@ -183,21 +183,6 @@ pid_t Process_Queue::Child_Pid(std::string Process_Path)
     return -1;
 }
 
-std::string Process_Queue::Child_Process(std::string Process_Path)
-{
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Process_Path() == Process_Path)
-        {
-            process_itr->Process_Path();
-            break;
-        }
-        process_itr++;
-    }
-}
-
 std::string Process_Queue::Child_Status(std::string Process_Path)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -238,7 +223,7 @@ void Process_Queue::kill_process(std::string Process_Path, std::string method)
         {
             if(process_itr->Process_Path() == Process_Path)
             {
-                kill(process_itr->Pid(), SIGUSR1);
+                kill(process_itr->Pid(), SIGTERM);
             }
             process_itr++;
         }
@@ -252,6 +237,19 @@ void Process_Queue::kill_process(std::string Process_Path, std::string method)
             if(process_itr->Process_Path() == Process_Path)
             {
                 kill(process_itr->Pid(), SIGKILL);
+            }
+            process_itr++;
+        }
+    }
+    else if(method == "SIGUSR1")
+    {
+        std::list<Process>::iterator process_itr = this->processes.begin();
+    
+        while(process_itr != this->processes.end())
+        {
+            if(process_itr->Process_Path() == Process_Path)
+            {
+                kill(process_itr->Pid(), SIGUSR1);
             }
             process_itr++;
         }
@@ -380,11 +378,6 @@ bool Process_Queue::run_process(std::string Process_Path)
 
    }
    return 0;
-}
-
-void Process_Queue::load_processes_from_file(std::string File_Path)
-{
-    //TODO
 }
 
 void Process_Queue::add_processes_to_lists(GtkWidget *scheduled_list, GtkWidget *idle_list)
@@ -606,3 +599,7 @@ void Process_Queue::stop_process()
     }
 }
 
+void Process_Queue::load_processes_from_file(std::string File_Path)
+{
+    //TODO
+}

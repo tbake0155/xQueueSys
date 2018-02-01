@@ -1,7 +1,7 @@
+#include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <stdio.h>
 #include "process_queue.h"
 #include <gtk/gtk.h>
 #include <X11/Xlib.h>
@@ -152,7 +152,7 @@ void remove_process(GtkWidget *widget, gpointer data)
     }
 }
 
-void edit_process(GtkWidget *widget, gpointer data)
+void edit_process(GtkWidget *widget, gpointer data) //TODO (MAYBE)
 {
     if(data != NULL)
     {
@@ -201,11 +201,17 @@ static void process_tracker_handler(int signum)
     refresh_list(cb_data);    
 }
 
-static void sigusr2_handler(int signum)
+static void we_stopped_handler(int signum)
 {
     if (signum == SIGUSR2)
     {
-        std::cout<<"caught sigusr2"<<std::endl;
+        if(cb_data != NULL)
+        {
+            if(cb_data->pq->no_running_process())
+            {
+                cb_data->pq->run_process(cb_data->pq->next_up());
+            }
+        } 
     }   
 }
 
@@ -492,7 +498,7 @@ int main(int argc, char **argv)
    
     // listen for process_tracker to complete
     signal(SIGUSR1, process_tracker_handler);
-    signal(SIGUSR2, sigusr2_handler);
+    signal(SIGUSR2, we_stopped_handler);
 
 
     // load the pre-loaded processes into the idle process list
