@@ -67,7 +67,7 @@ class Process_Queue
         void Child_Status(std::string Process_Path, std::string Status);
         
        /*        
-        * Child_Pid(string) -  get child pid by matching process path
+        * Child_Status(string) -  get child pid by matching process path
         */           
         std::string Child_Status(std::string Status);
         

@@ -11,81 +11,17 @@
 
 #define MSGSIZE  8
 
+/*
+ * constructor - default constructor is all that is available
+ */
 Process_Queue::Process_Queue()
 {
 
 }
 
-pid_t Process_Queue::Running_Process_Pid()
-{
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Status() == "running")
-        {
-            process_itr->Pid();
-            break;
-        }
-        process_itr++;
-    }
-}
-
-void Process_Queue::add_process(Process new_process)
-{
-    this->processes.emplace_back(new_process);
-    this->processes.sort();
-}
-
-void Process_Queue::remove_process(Process old_process)
-{    
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Pid() == old_process.Pid())
-        {
-            this->processes.erase(process_itr);
-            break;
-        }
-        process_itr++;
-    }
-}
-
-void Process_Queue::remove_process(std::string process_data)
-{    
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Scrollable_List_Data(false) == process_data)
-        {
-            this->processes.erase(process_itr);
-            break;
-        }
-        process_itr++;
-    }
-}
-
-void Process_Queue::new_process(std::string process_name)
-{
-    Process process(process_name);
-    this->add_process(process);
-}
-
-void Process_Queue::new_process(std::string process_name, int how_nice)
-{
-    Process process(process_name, how_nice);
-    this->add_process(process);
-}
-
-
-void Process_Queue::new_process(std::string process_name, int how_nice, std::string Args)
-{
-    Process process(process_name, how_nice, Args);
-    this->add_process(process);
-}
-
+/*        
+ * Child_Args(string, string) - set child args by matching process path
+ */  
 void Process_Queue::Child_Args(std::string Process_Path, std::string Child_Args)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -102,6 +38,9 @@ void Process_Queue::Child_Args(std::string Process_Path, std::string Child_Args)
      
 }
 
+/*        
+ * Child_Args(string) - get child args by matching process path
+ */  
 std::string Process_Queue::Child_Args(std::string Process_Path)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -119,6 +58,9 @@ std::string Process_Queue::Child_Args(std::string Process_Path)
     return "";
 }
 
+/*        
+ * Child_Nice(string, int) -  set child nice by matching process path
+ */         
 void Process_Queue::Child_Nice(std::string Process_Path, int Child_Nice)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -131,10 +73,12 @@ void Process_Queue::Child_Nice(std::string Process_Path, int Child_Nice)
             break;
         }
         process_itr++;
-    }
-     
+    }    
 }
-
+        
+/*        
+ * Child_Nice(string) - get child nice by matching process path
+ */          
 int Process_Queue::Child_Nice(std::string Process_Path)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -151,6 +95,9 @@ int Process_Queue::Child_Nice(std::string Process_Path)
     return -1;
 }
 
+/*        
+ * Child_Pid(string, pid_t) -  set child pid by matching process path
+ */         
 void Process_Queue::Child_Pid(std::string Process_Path, pid_t Child_Pid)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -166,7 +113,10 @@ void Process_Queue::Child_Pid(std::string Process_Path, pid_t Child_Pid)
     }
      
 }
-
+        
+/*        
+ * Child_Pid(string) -  get child pid by matching process path
+ */         
 pid_t Process_Queue::Child_Pid(std::string Process_Path)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -183,21 +133,9 @@ pid_t Process_Queue::Child_Pid(std::string Process_Path)
     return -1;
 }
 
-std::string Process_Queue::Child_Status(std::string Process_Path)
-{
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Process_Path() == Process_Path)
-        {
-            process_itr->Status();
-            break;
-        }
-        process_itr++;
-    }
-}
-
+/*        
+ * Child_Status(string, string) -  set child status by matching process path
+ */       
 void Process_Queue::Child_Status(std::string Process_Path, std::string Child_Status)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -213,6 +151,119 @@ void Process_Queue::Child_Status(std::string Process_Path, std::string Child_Sta
     }     
 }
 
+/*        
+ * Child_Status(string) -  get child Status by matching process path
+ */     
+std::string Process_Queue::Child_Status(std::string Process_Path)
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Process_Path() == Process_Path)
+        {
+            process_itr->Status();
+            break;
+        }
+        process_itr++;
+    }
+}
+        
+/*
+ * new_process(string) - create new process with only the path
+ */
+void Process_Queue::new_process(std::string process_name)
+{
+    Process process(process_name);
+    this->add_process(process);
+}
+
+/*
+ * new_process(string, int) - create new process with path and nice
+ */
+void Process_Queue::new_process(std::string process_name, int how_nice)
+{
+    Process process(process_name, how_nice);
+    this->add_process(process);
+}
+
+/*
+ * new_process(string, int, string) - create new process with path,
+ *                                    nice and args
+ */
+void Process_Queue::new_process(std::string process_name, int how_nice, std::string Args)
+{
+    Process process(process_name, how_nice, Args);
+    this->add_process(process);
+}
+ 
+/*
+ * add_process(Process) - add a process that already exist somewhere elst
+ */         
+void Process_Queue::add_process(Process new_process)
+{
+    this->processes.emplace_back(new_process);
+    this->processes.sort();
+}
+        
+/*
+ * remove_process(Process) - remove a process by matching the process
+ *                           directly
+ */          
+void Process_Queue::remove_process(Process old_process)
+{    
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Pid() == old_process.Pid())
+        {
+            this->processes.erase(process_itr);
+            break;
+        }
+        process_itr++;
+    }
+}
+        
+/*
+ * remove_process(string) - remove a process by matching its path
+ */          
+void Process_Queue::remove_process(std::string process_data)
+{    
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Scrollable_List_Data(false) == process_data)
+        {
+            this->processes.erase(process_itr);
+            break;
+        }
+        process_itr++;
+    }
+}
+         
+/*
+ * kill_process(string) - kill a process by matching its path
+ */              
+void Process_Queue::kill_process(std::string Process_Path)
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Process_Path() == Process_Path)
+        {
+            kill(process_itr->Pid(), SIGUSR1);
+        }
+        process_itr++;
+    }
+}
+        
+/*
+ * kill_process(string, string) - kill a process by matching its path
+ *                                using the specified method
+ */         
 void Process_Queue::kill_process(std::string Process_Path, std::string method)
 {
     if(method == "SIGTERM")
@@ -259,21 +310,11 @@ void Process_Queue::kill_process(std::string Process_Path, std::string method)
         // don't kill anything
     } 
 }
-
-void Process_Queue::kill_process(std::string Process_Path)
-{
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Process_Path() == Process_Path)
-        {
-            kill(process_itr->Pid(), SIGUSR1);
-        }
-        process_itr++;
-    }
-}
-
+        
+/*
+ * kill_all_processes(string) - kill all processes using the 
+ *                              specified method
+ */ 
 // etorw ehs redrum
 void Process_Queue::kill_all_processes(std::string method)
 {
@@ -302,7 +343,11 @@ void Process_Queue::kill_all_processes(std::string method)
         // don't kill anything
     }
 }
-
+ 
+/*
+ * run_process(string) - launches process tracker, which 
+ *                       calls exec(Process_Path)
+ */            
 bool Process_Queue::run_process(std::string Process_Path)
 {
    if(Process_Path.length() < 1)
@@ -379,7 +424,14 @@ bool Process_Queue::run_process(std::string Process_Path)
    }
    return 0;
 }
-
+        
+/*
+ * add_processes_to_lists(GtkWidget*, GtkWidget*) - split the processes
+ *                                                  into scheduled/idle,
+ *                                                  destroy the old list,
+ *                                                  rebuild the list with 
+ *                                                  our divided processes
+ */         
 void Process_Queue::add_processes_to_lists(GtkWidget *scheduled_list, GtkWidget *idle_list)
 {
     GdkColor red;
@@ -442,7 +494,12 @@ void Process_Queue::add_processes_to_lists(GtkWidget *scheduled_list, GtkWidget 
         process_itr++;
     }
 }
-
+        
+/*
+ * schedule(string) - schedule an idle process
+ *
+ * button clicked : "Schedule"
+ */          
 void Process_Queue::schedule(std::string process_data)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -464,7 +521,12 @@ void Process_Queue::schedule(std::string process_data)
         process_itr++;
     }
 }
-
+        
+/*
+ * deschedule(string) - deschedule a scheduled process
+ *
+ * button clicked : "Deschedule"
+ */           
 void Process_Queue::deschedule(std::string process_data)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -481,7 +543,12 @@ void Process_Queue::deschedule(std::string process_data)
         process_itr++;
     }
 }
-
+        
+/*
+ * allow(string) - allow an idle process to be scheduled
+ *
+ * button clicked : "Allow"
+ */         
 void Process_Queue::allow(std::string process_data)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -495,7 +562,12 @@ void Process_Queue::allow(std::string process_data)
         process_itr++;
     }
 }
-
+        
+/*
+ * block(string) - block an idle process from being scheduled
+ *
+ * button clicked : "Block"
+ */           
 void Process_Queue::block(std::string process_data)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -509,58 +581,13 @@ void Process_Queue::block(std::string process_data)
         process_itr++;
     }
 }
-
-std::string Process_Queue::next_up()
-{
-    this->processes.sort();
-
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-        if(process_itr->Status() == "waiting" )
-        {
-            return process_itr->Process_Path();
-        }
-        process_itr++;
-    }
-    return "";
-}
-
-
-bool Process_Queue::no_running_process()
-{
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-
-       if(process_itr->Status() == "running" || process_itr->Status() == "paused")
-       {
-            return false;
-       }
-       process_itr++;
-    }
-    
-    return true;
-}
-
-void Process_Queue::done()
-{
-    std::list<Process>::iterator process_itr = this->processes.begin();
-    
-    while(process_itr != this->processes.end())
-    {
-
-       if(process_itr->Status() == "running")
-       {
-            process_itr->Status("idle");
-            break;
-       }
-       process_itr++;
-    }
-}
-
+        
+/*
+ * pause_process(string) - pause/continue a running process,
+ *                         calls SIGTSTP/SIGCONT respectively
+ *
+ * button clicked : "Pause"
+ */            
 void Process_Queue::pause_process(bool paused)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -582,7 +609,12 @@ void Process_Queue::pause_process(bool paused)
        process_itr++;
     }
 }
-
+        
+/*
+ * stop_process(string) - terminate a running or paused process
+ *
+ * button clicked : "Stop"
+ */          
 void Process_Queue::stop_process()
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
@@ -598,8 +630,93 @@ void Process_Queue::stop_process()
        process_itr++;
     }
 }
+        
+/*
+ * no_running_process() - checks for a running process
+ */         
+bool Process_Queue::no_running_process()
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
 
+       if(process_itr->Status() == "running" || process_itr->Status() == "paused")
+       {
+            return false;
+       }
+       process_itr++;
+    }
+    
+    return true;
+}
+        
+/*
+ * next_up() - finds the next waiting process with highest priority
+ */          
+std::string Process_Queue::next_up()
+{
+    this->processes.sort();
+
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Status() == "waiting" )
+        {
+            return process_itr->Process_Path();
+        }
+        process_itr++;
+    }
+    return "";
+}
+        
+/*
+ * done() - change the status of the current running process to idle
+ */        
+void Process_Queue::done()
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+
+       if(process_itr->Status() == "running")
+       {
+            process_itr->Status("idle");
+            break;
+       }
+       process_itr++;
+    }
+}
+        
+/*
+ * Running_Process_Pid() - returns the Pid of the instance of 
+ *                         process_tracker that is running the 
+ *                         process 
+ */        
+pid_t Process_Queue::Running_Process_Pid()
+{
+    std::list<Process>::iterator process_itr = this->processes.begin();
+    
+    while(process_itr != this->processes.end())
+    {
+        if(process_itr->Status() == "running")
+        {
+            process_itr->Pid();
+            break;
+        }
+        process_itr++;
+    }
+}
+        
+/*
+ * load_processes_from_file() - allow user to load many processes at 
+ *                              one time by specifying path, nice and args
+ *                              in a text file, one line per process
+ */        
 void Process_Queue::load_processes_from_file(std::string File_Path)
 {
     //TODO
 }
+
