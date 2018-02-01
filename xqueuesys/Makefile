@@ -71,7 +71,7 @@ n_countdown.o: src/processes/src/n_countdown.cpp
 	g++ -c -g src/processes/src/n_countdown.cpp -std=c++11 -o src/processes/obj/n_countdown.o `pkg-config --cflags gtk+-2.0`
 		
 n_factorial: n_factorial.o
-	g++ -o src/processes/bin/n_factorial src/processes/obj/n_factorial.o -lX11 `pkg-config --libs gtk+-2.0`
+	g++ -o src/processes/bin/n_factorial src/processes/obj/n_factorial.o -pthread -lX11 `pkg-config --libs gtk+-2.0`
 
 n_factorial.o: src/processes/src/n_factorial.cpp	
 	g++ -c -g src/processes/src/n_factorial.cpp -std=c++11 -o src/processes/obj/n_factorial.o `pkg-config --cflags gtk+-2.0`
@@ -96,8 +96,4 @@ clean:
 	rm src/priority_queue/bin/*
 	rm src/processes/obj/*
 	rm src/processes/bin/*
-	
-	
-	
-	
 	

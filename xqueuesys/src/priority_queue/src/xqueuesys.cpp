@@ -6,6 +6,8 @@
 #include <gtk/gtk.h>
 #include <X11/Xlib.h>
 
+// declaration and definition of simple struct to hold
+// callback data
 struct Callback_Data
 {
     Process_Queue *pq;
@@ -17,368 +19,36 @@ struct Callback_Data
     GtkWidget **buttons;
 };
 
+// function declarations for callback functions (primarily)
+// 
+// these functions would be wrapped in a class ideally, possibly
+// made as static functions 
+void select_scheduled(GtkList *list, GtkWidget *widget, gpointer data); // TODO not working
+void deselect_scheduled(GtkList *list, GtkWidget *widget, gpointer data); // TODO not working
+void destroy(GtkWidget *widget, gpointer data);
+static gboolean refresh_list(gpointer data);
+void process_from_file(GtkWidget *widget, gpointer data);
+void add_process(GtkWidget *widget, gpointer data);
+void remove_process(GtkWidget *widget, gpointer data);
+void edit_process(GtkWidget *widget, gpointer data); //TODO (MAYBE)
+static void process_tracker_handler(int signum);
+static void we_stopped_handler(int signum);
+void schedule(GtkWidget *widget, gpointer data);
+void deschedule(GtkWidget *widget, gpointer data);
+void allow(GtkWidget *widget, gpointer data);
+void block(GtkWidget *widget, gpointer data);
+void continue_process(GtkWidget *widget, gpointer data);
+void pause_process(GtkWidget *widget, gpointer data);
+void stop_process(GtkWidget *widget, gpointer data);
+void load_default_processes(Process_Queue *pq);
+
+// global access required for signals, ideally this would be changed
 Callback_Data *cb_data = new Callback_Data();
 
-void select_scheduled(GtkList *list, GtkWidget *widget, gpointer data) // TODO not working
-{
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        
-        // allow buttons 
-        gtk_widget_set_sensitive (cb->buttons[5], TRUE); // pause button
-        gtk_widget_set_sensitive (cb->buttons[6], TRUE); // stop button
-    } 
-    
-}
-
-void deselect_scheduled(GtkList *list, GtkWidget *widget, gpointer data) // TODO not working
-{
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        
-        // disallow buttons 
-        gtk_widget_set_sensitive (cb->buttons[5], FALSE); // pause button
-        gtk_widget_set_sensitive (cb->buttons[6], FALSE); // stop button
-    } 
-}
-
-
-void destroy(GtkWidget *widget, gpointer data)
-{ 
-    int status;
-    
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        if(!cb->pq->no_running_process())
-        {   
-            kill(cb->pq->Running_Process_Pid(), SIGUSR1);  
-            waitpid(cb->pq->Running_Process_Pid(), &status, 0);
-        }
-    }
-    gtk_main_quit(); 
-}
-
-static gboolean refresh_list(gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        cb->pq->add_processes_to_lists(cb->scheduled_list, cb->idle_list);   
-        gtk_widget_show_all(cb->window);
-    } 
-}
-
-void process_from_file(GtkWidget *widget, gpointer data)
-{
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        
-        if (gtk_dialog_run (GTK_DIALOG (cb->dialog)) == GTK_RESPONSE_ACCEPT)
-        {
-            char *filename;
-            filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (cb->dialog));
-            gtk_entry_set_text(GTK_ENTRY(cb->textboxes[0]), filename);
-        }
-        gtk_widget_destroy (cb->dialog);
-        cb->dialog = gtk_file_chooser_dialog_new ("Select Process", NULL,  GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
-    } 
-}
-
-void add_process(GtkWidget *widget, gpointer data)
-{
-    if(data != NULL)
-    {      
-        Callback_Data *cb = (Callback_Data*) data;  
-        
-        const gchar *entry_text;
-        entry_text = gtk_entry_get_text (GTK_ENTRY(cb->textboxes[0]));
-        std::string entry = entry_text;
-
-        if(entry!= "")
-        {
-            std::string process_data = entry_text;
-            cb_data->pq->add_process(process_data);
-            
-            entry_text = gtk_entry_get_text(GTK_ENTRY(cb->textboxes[2]));
-            entry = entry_text;
-            if(entry != "")
-            {
-                int how_nice = atoi(entry_text);
-                if(how_nice >0 && how_nice <= 20)
-                {
-                    cb_data->pq->Child_Nice(process_data, how_nice);
-                }
-            }
-            entry_text = gtk_entry_get_text(GTK_ENTRY(cb->textboxes[1]));
-            entry = entry_text;
-            if(entry != "")
-            {
-                cb_data->pq->Child_Args(process_data, entry);
-            } 
-        }
-        refresh_list(cb);    
-    }   
-}
-
-void remove_process(GtkWidget *widget, gpointer data)
-{
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        GList *dlist = GTK_LIST(cb->idle_list)->selection;
-        if(dlist != NULL)
-        {
-            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
-            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
-            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
-            if(cb->pq != NULL)
-            {
-                cb->pq->remove_process(process_data);
-            }
-            else
-            {
-                // TODO you might want to terminate the program here
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-        refresh_list(data);      
-    }
-}
-
-void edit_process(GtkWidget *widget, gpointer data) //TODO (MAYBE)
-{
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        GList *dlist = GTK_LIST(cb->idle_list)->selection;
-        if(dlist != NULL)
-        {
-            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
-            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
-            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
-            if(cb->pq != NULL)
-            {
-                // TODO you might want to terminate the program here
-            }
-            else
-            {
-                // TODO you might want to terminate the program here
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-        refresh_list(data);      
-    }
-}
-
-static void process_tracker_handler(int signum)
-{
-    if (signum == SIGUSR1)
-    {
-        if(cb_data != NULL)
-        {
-            cb_data->pq->done();
-            refresh_list(cb_data);
-            if(cb_data->pq->no_running_process())
-            {
-                cb_data->pq->run_process(cb_data->pq->next_up());
-            }
-        }
-    }
-    else
-    {
-        // do nothing
-    }
-    refresh_list(cb_data);    
-}
-
-static void we_stopped_handler(int signum)
-{
-    if (signum == SIGUSR2)
-    {
-        if(cb_data != NULL)
-        {
-            if(cb_data->pq->no_running_process())
-            {
-                cb_data->pq->run_process(cb_data->pq->next_up());
-            }
-        } 
-    }   
-}
-
-
-void schedule(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        GList *dlist = GTK_LIST(cb->idle_list)->selection;
-        if(dlist != NULL)
-        {
-            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
-            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
-            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
-            if(cb->pq != NULL)
-            {
-                cb->pq->schedule(process_data);
-                if(cb->pq->no_running_process())
-                {
-                    cb->pq->run_process(cb->pq->next_up());
-                }
-            }
-            else
-            {
-                // TODO you might want to terminate the program here
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-    }
-    refresh_list(data);    
-}
-
-void deschedule(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        GList *dlist = GTK_LIST(cb->scheduled_list)->selection;
-        if(dlist != NULL)
-        {
-            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
-            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
-            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
-            if(cb->pq != NULL)
-            {
-                cb->pq->deschedule(process_data);
-            }
-            else
-            {
-                // TODO you might want to terminate the program here
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-        refresh_list(data);    
-    }
-}
-
-void allow(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        GList *dlist = GTK_LIST(cb->idle_list)->selection;
-        if(dlist != NULL)
-        {
-            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
-            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
-            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
-            if(cb->pq != NULL)
-            {
-                cb->pq->allow(process_data);
-            }
-            else
-            {
-                // TODO you might want to terminate the program here
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-    }
-    refresh_list(data);    
-}
-
-void block(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        GList *dlist = GTK_LIST(cb->idle_list)->selection;
-        if(dlist != NULL)
-        {
-            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
-            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
-            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
-            if(cb->pq != NULL)
-            {
-                cb->pq->block(process_data);
-            }
-            else
-            {
-                // TODO you might want to terminate the program here
-            }
-        }
-        else
-        {
-            // do nothing
-        }
-    }
-    refresh_list(data);    
-}
-
-void continue_process(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        cb->pq->pause_process(true);
-        refresh_list(data);    
-    }
-}
-
-void pause_process(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        cb->pq->pause_process(false);
-        refresh_list(data);    
-    }
-}
-
-void stop_process(GtkWidget *widget, gpointer data)
-{ 
-    if(data != NULL)
-    {
-        Callback_Data *cb = (Callback_Data*) data;
-        cb->pq->stop_process();
-        refresh_list(data);    
-    }
-}
-
-void load_default_processes(Process_Queue *pq)
-{
-    // load the built-in processes into the idle process queue
-    // new_process(string Process_Path, int Nice)
-    pq->new_process("processes/n_factorial", 2);
-    pq->new_process("processes/n_fibonacci", 2);
-    pq->new_process("processes/ascii_image", 7);
-    pq->new_process("processes/crypto"); //default nice is 10
-    pq->new_process("processes/recho", 4);
-    pq->new_process("processes/n_countdown"); 
-}
-
-//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//
-//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//
-//~~//~~//~~//~~//~~//~~//~~// main //~~//~~//~~//~~//~~//~~//~~//
-//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//
-//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//~~//
+/*
+ * xqueuesys main() - sets up gtk window, connects signals to callbacks
+ *                    then hands over control to gtk_main()
+ */
 int main(int argc, char **argv)
 {
     // initialize necessary for X11 and GTK libraries
@@ -507,7 +177,7 @@ int main(int argc, char **argv)
     // display the window for xQueueSys
     gtk_widget_show_all(window);
 
-    // yield program control over to gtk, it's all callbacks from here
+    // yield program control over to gtk, it is all callbacks from here
     gtk_main();
     
     // clean up
@@ -515,4 +185,412 @@ int main(int argc, char **argv)
     delete(cb_data);
 
     return 0;
+} //end of main
+
+
+/*
+ * select_scheduled(GtkWidget*, gpointer)
+ */
+void select_scheduled(GtkList *list, GtkWidget *widget, gpointer data) // TODO not working
+{
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        
+        // allow buttons 
+        gtk_widget_set_sensitive (cb->buttons[5], TRUE); // pause button
+        gtk_widget_set_sensitive (cb->buttons[6], TRUE); // stop button
+    } 
+    
+}
+
+/*
+ * deselect_scheduled(GtkWidget*, gpointer) -
+ */
+void deselect_scheduled(GtkList *list, GtkWidget *widget, gpointer data) // TODO not working
+{
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        
+        // disallow buttons 
+        gtk_widget_set_sensitive (cb->buttons[5], FALSE); // pause button
+        gtk_widget_set_sensitive (cb->buttons[6], FALSE); // stop button
+    } 
+}
+
+/*
+ * destroy(GtkWidget*, gpointer) -
+ */
+void destroy(GtkWidget *widget, gpointer data)
+{ 
+    int status;
+    
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        if(!cb->pq->no_running_process())
+        {   
+            kill(cb->pq->Running_Process_Pid(), SIGUSR1);  
+            waitpid(cb->pq->Running_Process_Pid(), &status, 0);
+        }
+    }
+    gtk_main_quit(); 
+}
+
+/*
+ * refresh_list(gpointer) -
+ */
+static gboolean refresh_list(gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        cb->pq->add_processes_to_lists(cb->scheduled_list, cb->idle_list);   
+        gtk_widget_show_all(cb->window);
+    } 
+}
+
+/*
+ * process_from_file(GtkWidget*, gpointer) -
+ */
+void process_from_file(GtkWidget *widget, gpointer data)
+{
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        
+        if (gtk_dialog_run (GTK_DIALOG (cb->dialog)) == GTK_RESPONSE_ACCEPT)
+        {
+            char *filename;
+            filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (cb->dialog));
+            gtk_entry_set_text(GTK_ENTRY(cb->textboxes[0]), filename);
+        }
+        gtk_widget_destroy (cb->dialog);
+        cb->dialog = gtk_file_chooser_dialog_new ("Select Process", NULL,  GTK_FILE_CHOOSER_ACTION_OPEN, GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT, NULL);
+    } 
+}
+
+/*
+ * add_process(GtkWidget*, gpointer) -
+ */
+void add_process(GtkWidget *widget, gpointer data)
+{
+    if(data != NULL)
+    {      
+        Callback_Data *cb = (Callback_Data*) data;  
+        
+        const gchar *entry_text;
+        entry_text = gtk_entry_get_text (GTK_ENTRY(cb->textboxes[0]));
+        std::string entry = entry_text;
+
+        if(entry!= "")
+        {
+            std::string process_data = entry_text;
+            cb_data->pq->add_process(process_data);
+            
+            entry_text = gtk_entry_get_text(GTK_ENTRY(cb->textboxes[2]));
+            entry = entry_text;
+            if(entry != "")
+            {
+                int how_nice = atoi(entry_text);
+                if(how_nice >0 && how_nice <= 20)
+                {
+                    cb_data->pq->Child_Nice(process_data, how_nice);
+                }
+            }
+            entry_text = gtk_entry_get_text(GTK_ENTRY(cb->textboxes[1]));
+            entry = entry_text;
+            if(entry != "")
+            {
+                cb_data->pq->Child_Args(process_data, entry);
+            } 
+        }
+        refresh_list(cb);    
+    }   
+}
+
+/*
+ * remove_process(GtkWidget*, gpointer)
+ */
+void remove_process(GtkWidget *widget, gpointer data)
+{
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        GList *dlist = GTK_LIST(cb->idle_list)->selection;
+        if(dlist != NULL)
+        {
+            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
+            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
+            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
+            if(cb->pq != NULL)
+            {
+                cb->pq->remove_process(process_data);
+            }
+            else
+            {
+                // TODO you might want to terminate the program here
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+        refresh_list(data);      
+    }
+}
+
+/*
+ * edit_process(GtkWidget*, gpointer)
+ */
+void edit_process(GtkWidget *widget, gpointer data) //TODO (MAYBE)
+{
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        GList *dlist = GTK_LIST(cb->idle_list)->selection;
+        if(dlist != NULL)
+        {
+            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
+            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
+            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
+            if(cb->pq != NULL)
+            {
+                // TODO you might want to terminate the program here
+            }
+            else
+            {
+                // TODO you might want to terminate the program here
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+        refresh_list(data);      
+    }
+}
+
+/*
+ * process_tracker_handler(int) - 
+ */
+static void process_tracker_handler(int signum)
+{
+    if (signum == SIGUSR1)
+    {
+        if(cb_data != NULL)
+        {
+            cb_data->pq->done();
+            refresh_list(cb_data);
+            if(cb_data->pq->no_running_process())
+            {
+                cb_data->pq->run_process(cb_data->pq->next_up());
+            }
+        }
+    }
+    else
+    {
+        // do nothing
+    }
+    refresh_list(cb_data);    
+}
+
+/*
+ * we_stopped_handler(int) -
+ */
+static void we_stopped_handler(int signum)
+{
+    if (signum == SIGUSR2)
+    {
+        if(cb_data != NULL)
+        {
+            if(cb_data->pq->no_running_process())
+            {
+                cb_data->pq->run_process(cb_data->pq->next_up());
+            }
+        } 
+    }   
+}
+
+/*
+ * schedule(GtkWidget*, gpointer) -
+ */
+void schedule(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        GList *dlist = GTK_LIST(cb->idle_list)->selection;
+        if(dlist != NULL)
+        {
+            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
+            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
+            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
+            if(cb->pq != NULL)
+            {
+                cb->pq->schedule(process_data);
+                if(cb->pq->no_running_process())
+                {
+                    cb->pq->run_process(cb->pq->next_up());
+                }
+            }
+            else
+            {
+                // TODO you might want to terminate the program here
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+    }
+    refresh_list(data);    
+}
+
+/*
+ * deschedule(GtkWidget*, gpointer) -
+ */
+void deschedule(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        GList *dlist = GTK_LIST(cb->scheduled_list)->selection;
+        if(dlist != NULL)
+        {
+            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
+            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
+            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
+            if(cb->pq != NULL)
+            {
+                cb->pq->deschedule(process_data);
+            }
+            else
+            {
+                // TODO you might want to terminate the program here
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+        refresh_list(data);    
+    }
+}
+
+/*
+ * allow(GtkWidget*, gpointer) -
+ */
+void allow(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        GList *dlist = GTK_LIST(cb->idle_list)->selection;
+        if(dlist != NULL)
+        {
+            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
+            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
+            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
+            if(cb->pq != NULL)
+            {
+                cb->pq->allow(process_data);
+            }
+            else
+            {
+                // TODO you might want to terminate the program here
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+    }
+    refresh_list(data);    
+}
+
+/*
+ * block(GtkWidget*, gpointer) -
+ */
+void block(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        GList *dlist = GTK_LIST(cb->idle_list)->selection;
+        if(dlist != NULL)
+        {
+            GtkWidget *selected_item = GTK_WIDGET(dlist->data);
+            GtkWidget *label = gtk_bin_get_child(GTK_BIN(selected_item));
+            std::string process_data = gtk_label_get_text(GTK_LABEL(label));
+            if(cb->pq != NULL)
+            {
+                cb->pq->block(process_data);
+            }
+            else
+            {
+                // TODO you might want to terminate the program here
+            }
+        }
+        else
+        {
+            // do nothing
+        }
+    }
+    refresh_list(data);    
+}
+
+/*
+ * continue_process(GtkWidget*, gpointer) -
+ */
+void continue_process(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        cb->pq->pause_process(true);
+        refresh_list(data);    
+    }
+}
+
+/*
+ * pause_process(GtkWidget*, gpointer) -
+ */
+void pause_process(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        cb->pq->pause_process(false);
+        refresh_list(data);    
+    }
+}
+
+/* 
+ * stop_process(GtkWidget*, gpointer) -
+ */
+void stop_process(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        cb->pq->stop_process();
+        refresh_list(data);    
+    }
+}
+
+/*
+ * load_default_processes(Process_Queue*) -
+ */
+void load_default_processes(Process_Queue *pq)
+{
+    // load the built-in processes into the idle process queue
+    // new_process(string Process_Path, int Nice)
+    pq->new_process("processes/n_factorial", 2);
+    pq->new_process("processes/n_fibonacci", 2);
+    pq->new_process("processes/ascii_image", 7);
+    pq->new_process("processes/crypto"); //default nice is 10
+    pq->new_process("processes/recho", 4);
+    pq->new_process("processes/n_countdown"); 
 }
