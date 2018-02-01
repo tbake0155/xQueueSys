@@ -42,7 +42,7 @@ class Process_Queue
         bool no_running_process();
         std::string next_up();
         void done();
-        void pause_process();
+        void pause_process(bool paused);
         void stop_process();
         pid_t Running_Process_Pid();
 };

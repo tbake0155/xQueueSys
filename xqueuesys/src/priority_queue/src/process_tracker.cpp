@@ -9,6 +9,7 @@
 #include <sys/wait.h>
 
 pid_t child_pid;
+pid_t parent_pid;
 bool paused = false;
 
 static void xqueuesys_handler(int signum)
@@ -16,6 +17,7 @@ static void xqueuesys_handler(int signum)
     if (signum == SIGUSR1)
     {
         kill(child_pid, SIGTERM);
+        kill(parent_pid, SIGUSR1);
     }
 }
 
@@ -43,7 +45,6 @@ int main(int argc, char** argv)
     std::string Process_Path;
     std::string args;
     key_t key;
-    pid_t parent_pid;
 
     if(argc < 4)
     {

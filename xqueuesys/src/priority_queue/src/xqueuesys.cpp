@@ -326,12 +326,22 @@ void block(GtkWidget *widget, gpointer data)
     refresh_list(data);    
 }
 
+void continue_process(GtkWidget *widget, gpointer data)
+{ 
+    if(data != NULL)
+    {
+        Callback_Data *cb = (Callback_Data*) data;
+        cb->pq->pause_process(true);
+        refresh_list(data);    
+    }
+}
+
 void pause_process(GtkWidget *widget, gpointer data)
 { 
     if(data != NULL)
     {
         Callback_Data *cb = (Callback_Data*) data;
-        cb->pq->pause_process();
+        cb->pq->pause_process(false);
         refresh_list(data);    
     }
 }
@@ -382,7 +392,8 @@ int main(int argc, char **argv)
     GtkWidget *deschedule_button = gtk_button_new_with_label("Deschedule"); 
     GtkWidget *allow_button = gtk_button_new_with_label("Allow");
     GtkWidget *block_button = gtk_button_new_with_label("Block");
-    GtkWidget *edit_button = gtk_button_new_with_label("Edit");
+    //GtkWidget *edit_button = gtk_button_new_with_label("Edit");
+    GtkWidget *continue_button = gtk_button_new_with_label("Continue");
     GtkWidget *quit_button = gtk_button_new_with_label("Quit");
     GtkWidget *pause_button = gtk_button_new_with_label("Pause");
     GtkWidget *stop_button = gtk_button_new_with_label("Stop");
@@ -433,8 +444,9 @@ int main(int argc, char **argv)
     gtk_table_attach_defaults (GTK_TABLE(table), deschedule_button, 9, 11, 7, 8);
     gtk_table_attach_defaults (GTK_TABLE(table), allow_button, 0, 2, 10, 11); 
     gtk_table_attach_defaults (GTK_TABLE(table), block_button, 2, 4, 10, 11);
-    gtk_table_attach_defaults (GTK_TABLE(table), edit_button, 4, 6, 10, 11);
-    gtk_table_attach_defaults (GTK_TABLE(table), pause_button, 16, 18, 10, 11); 
+    //gtk_table_attach_defaults (GTK_TABLE(table), edit_button, 4, 6, 10, 11);
+    gtk_table_attach_defaults (GTK_TABLE(table), continue_button, 12, 14, 10, 11); 
+    gtk_table_attach_defaults (GTK_TABLE(table), pause_button, 14, 16, 10, 11); 
     gtk_table_attach_defaults (GTK_TABLE(table), stop_button, 18, 20, 10, 11);
     gtk_table_attach_defaults (GTK_TABLE(table), quit_button, 16, 20, 14, 15);
     gtk_table_attach_defaults (GTK_TABLE(table), add_button, 7, 9, 13, 15);
@@ -474,8 +486,9 @@ int main(int argc, char **argv)
     g_signal_connect (process_textbox, "activate", G_CALLBACK(add_process), cb_data);
     g_signal_connect (GTK_OBJECT(add_button), "clicked", G_CALLBACK(add_process), cb_data);
     g_signal_connect (GTK_OBJECT(remove_button), "clicked", G_CALLBACK(remove_process), cb_data);
-    g_signal_connect (GTK_OBJECT(edit_button), "clicked", G_CALLBACK(edit_process), cb_data);
+    //g_signal_connect (GTK_OBJECT(edit_button), "clicked", G_CALLBACK(edit_process), cb_data);
     g_signal_connect (GTK_OBJECT(from_file_button), "clicked", G_CALLBACK(process_from_file), cb_data);
+    g_signal_connect(GTK_OBJECT(continue_button), "clicked", G_CALLBACK(continue_process), cb_data);
    
     // listen for process_tracker to complete
     signal(SIGUSR1, process_tracker_handler);

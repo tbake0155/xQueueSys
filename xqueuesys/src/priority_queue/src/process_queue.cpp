@@ -542,7 +542,7 @@ bool Process_Queue::no_running_process()
     while(process_itr != this->processes.end())
     {
 
-       if(process_itr->Status() == "running")
+       if(process_itr->Status() == "running" || process_itr->Status() == "paused")
        {
             return false;
        }
@@ -568,19 +568,19 @@ void Process_Queue::done()
     }
 }
 
-void Process_Queue::pause_process()
+void Process_Queue::pause_process(bool paused)
 {
     std::list<Process>::iterator process_itr = this->processes.begin();
     
     while(process_itr != this->processes.end())
     {
-       if(process_itr->Status() == "running")
+       if(process_itr->Status() == "running" && !paused)
        {
             process_itr->Status("paused");
             kill(process_itr->Pid(), SIGUSR2);
             break;
        }
-       else if(process_itr->Status() == "paused")
+       else if(process_itr->Status() == "paused" && paused)
        {
             process_itr->Status("running");
             kill(process_itr->Pid(), SIGUSR2);
