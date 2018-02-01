@@ -1,0 +1,5 @@
+These built-in programs are simple programs designed to allow the user to launch xqueuesys and have programs ready to be called. 
+
+If any processes are added to the processes folder, they will not be detected.  The code could be modified to dynamically add
+any process that is included in the processes file, but it was not designed that.  However, the code can easily be modified to 
+add new processes during the star-up of xqueuesys. Look at the source code in priority_queue/src/xqueuesys.cpp.
